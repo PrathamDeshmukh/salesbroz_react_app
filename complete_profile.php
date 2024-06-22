@@ -20,30 +20,20 @@ if(!$conn) {
     die("Conn failed: " . mysqli_connect_error());
 }
 
-$data = json_decode(file_get_contents("php://input"));
+$data = json_decode(file_get_contents("php://input"), true);
+$retailer_id = $data['retailer_id'];
+$fname = $data['fname'];
+$lname = $data['lname'];
+$address = $data['address'];
+$email = $data['email'];
 
-$fname = $data->fname;
-$lname = $data->lname;
-$email = $data->email;
-$address = $data->address;
-$account_holder_name = $data->account_holder_name;
-$accountNo = $data->accountNo;
+$sql = "UPDATE retailer SET fname = '$fname', lname = '$lname', address = '$address', email = '$email', profile_status = 'complete' WHERE id = '$retailer_id'";
 
-// Prepare SQL statement to update the retailer profile
-$stmt = $conn->prepare("UPDATE retailer SET fname=?, lname=?, email=?, address=?, account_holder_name=?, account_no=?, profile_status='complete' WHERE id=?");
-$stmt->bind_param("ssssssi", $fname, $lname, $email, $address, $account_holder_name, $accountNo, $id);
-
-// Assuming you have the id available in session or passed from the frontend
-$id = 3; // Replace with the actual id
-
-// Execute the statement
-if ($stmt->execute()) {
-    echo json_encode(array("success" => true));
+if ($conn->query($sql) === TRUE) {
+    echo json_encode(array("status" => "success"));
 } else {
-    echo json_encode(array("success" => false, "message" => "Failed to update profile"));
+    echo json_encode(array("status" => "error", "message" => "Error updating record: " . $conn->error));
 }
 
-// Close prepared statement and database conn
-$stmt->close();
 $conn->close();
 ?>

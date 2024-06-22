@@ -20,19 +20,28 @@ if(!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$data = json_decode(file_get_contents("php://input"));
 
-$data = json_decode(file_get_contents("php://input"), true);
-$phone = $data['phone'];
-$password = $data['password'];
 
-$sql = "SELECT * FROM retailer WHERE phone = '$phone' AND password = '$password'";
-$result = $conn->query($sql);
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    echo json_encode(array("status" => "success", "retailer_id" => $row["id"], "profile_status" => $row["profile_status"]));
+
+$input = json_decode(file_get_contents('php://input'), true);
+
+$id = $input['id'];
+$field = $input['field'];
+$value = $input['value'];
+
+if ($stmt = $conn->prepare("UPDATE employee SET $field = ? WHERE id = ?")) {
+  $stmt->bind_param("si", $value, $id);
+  $stmt->execute();
+  if ($stmt->affected_rows > 0) {
+    echo json_encode(["success" => true]);
+  } else {
+    echo json_encode(["success" => false, "message" => "No rows affected"]);
+  }
+  $stmt->close();
 } else {
-    echo json_encode(array("status" => "error", "message" => "Invalid credentials"));
+  echo json_encode(["success" => false, "message" => "Error preparing statement"]);
 }
 
 $conn->close();

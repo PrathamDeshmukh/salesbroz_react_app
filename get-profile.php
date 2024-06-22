@@ -20,19 +20,16 @@ if(!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$retailer_id = $_GET['retailer_id'];
 
-$data = json_decode(file_get_contents("php://input"), true);
-$phone = $data['phone'];
-$password = $data['password'];
-
-$sql = "SELECT * FROM retailer WHERE phone = '$phone' AND password = '$password'";
+$sql = "SELECT fname, lname, address, email FROM retailer WHERE id = '$retailer_id'";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    echo json_encode(array("status" => "success", "retailer_id" => $row["id"], "profile_status" => $row["profile_status"]));
+    echo json_encode(array("status" => "success", "data" => $row));
 } else {
-    echo json_encode(array("status" => "error", "message" => "Invalid credentials"));
+    echo json_encode(array("status" => "error", "message" => "No record found"));
 }
 
 $conn->close();

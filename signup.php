@@ -19,20 +19,24 @@ $conn = mysqli_connect("localhost", "root", "", "salesbroz");
 if(!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-
 $data = json_decode(file_get_contents("php://input"), true);
 $phone = $data['phone'];
 $password = $data['password'];
 
-$sql = "SELECT * FROM retailer WHERE phone = '$phone' AND password = '$password'";
-$result = $conn->query($sql);
+// Check if the phone number already exists
+$sql_check = "SELECT * FROM retailer WHERE phone = '$phone'";
+$result_check = $conn->query($sql_check);
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    echo json_encode(array("status" => "success", "retailer_id" => $row["id"], "profile_status" => $row["profile_status"]));
+if ($result_check->num_rows > 0) {
+    echo json_encode(array("status" => "error", "message" => "Phone number already exists"));
 } else {
-    echo json_encode(array("status" => "error", "message" => "Invalid credentials"));
+    $sql = "INSERT INTO retailer (phone, password, profile_status) VALUES ('$phone', '$password', 'incomplete')";
+    
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(array("status" => "success"));
+    } else {
+        echo json_encode(array("status" => "error", "message" => "Error: " . $conn->error));
+    }
 }
 
 $conn->close();
